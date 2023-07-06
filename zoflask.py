@@ -1,184 +1,85 @@
-from flask import Flask, request, jsonify
-import sqlite3
+# Problem: Create a Customers table / collection with the following fields: id (unique identifier), name, email, address, and phone_number.
 
-app = Flask(__name__)
 
-# Function to get a new connection and cursor
-def get_db():
-    conn = sqlite3.connect('database.db', check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    return conn, conn.cursor()
+# CREATE TABLE Customers (
+#     id INT PRIMARY KEY,
+#     name VARCHAR(100),
+#     email VARCHAR(100),
+#     address VARCHAR(255),
+#     phone_number VARCHAR(50)
+# );
 
-# Routes for your Flask application
-@app.route("/")
-def welcome():
-    return "Welcome to home page"
 
-@app.route("/addDish", methods=["POST"])
-def adddish():
-    if request.method == 'POST':
-        data = request.get_json()
-        conn, c = get_db()
-        c.execute("INSERT INTO dish (Name, Quantity, Price, Img) VALUES (?, ?, ?, ?)",
-                  (data['Name'], data['Quantity'], data['Price'], data['Img']))
-        conn.commit()
-        conn.close()
-        return jsonify("Dish has been added successfully")
+# Insert five rows / documents into the Customers table / collection with data of your choice.
 
-@app.route("/menu", methods=["GET"])
-def showmenu():
-    if request.method == "GET":
-        conn, c = get_db()
-        c.execute("SELECT * FROM dish")
-        data = c.fetchall()
-        result = []
-        for item in data:
-            result.append({
-                'id': item[0],
-                'Name': item[1],
-                'Quantity': item[2],
-                'Price': item[3],
-                'Img': item[4]
-            })
-        conn.close()
-        return jsonify(result)
 
-@app.route("/delete/<int:Id>", methods=["DELETE"])
-def deleteDish(Id):
-    conn, c = get_db()
-    c.execute("DELETE FROM dish WHERE id=?", (Id,))
-    conn.commit()
-
-    if c.rowcount > 0:
-        conn.close()
-        return jsonify("Dish has been removed successfully")
-
-    conn.close()
-    return jsonify("Dish not found")
-
-@app.route("/updateDish/<int:id>", methods=["PATCH"])
-def updateDish(id):
-    if request.method == "PATCH":
-        data = request.get_json()
-        conn, c = get_db()
-        c.execute("UPDATE dish SET Quantity=?, Name=?, Price=?, Img=? WHERE id=?",
-                  (data['Quantity'], data['Name'], data['Price'], data['Img'], id))
-        conn.commit()
-
-        if c.rowcount > 0:
-            conn.close()
-            return jsonify("Successfully updated the quantity and name")
-
-        conn.close()
-        return jsonify("Id not found")
-
-@app.route("/order", methods=["POST"])
-def orderDish():
-    if request.method == "POST":
-        data = request.get_json()
-        conn, c = get_db()
-        c.execute("SELECT * FROM dish WHERE Name=?", (data['food'],))
-        dish = c.fetchone()
-        if dish:
-            if dish['Quantity'] >= data['Quantity']:
-                price = dish['Price'] * data['Quantity']
-                c.execute("INSERT INTO orders (Name, Quantity, Price, Status) VALUES (?, ?, ?, ?)",
-                          (dish['Name'], data['Quantity'], price, "received"))
-                conn.commit()
-                conn.close()
-                return jsonify("Order Created Successfully")
-            else:
-                conn.close()
-                return jsonify("Insufficient quantity of the dish")
-
-        conn.close()
-        return jsonify("Food not found")
+# INSERT INTO Customers (id, name, email, address, phone_number)
+# VALUES
+#     (1, 'John Doe', 'john@example.com', '123 Main St', '123-456-7890'),
+#     (2, 'Jane Smith', 'jane@example.com', '456 Elm St', '987-654-3210'),
+#     (3, 'Bob Johnson', 'bob@example.com', '789 Oak St', '555-123-4567'),
+#     (4, 'Alice Williams', 'alice@example.com', '321 Pine St', '444-888-9999'),
+#     (5, 'Charlie Brown', 'charlie@example.com', '678 Maple St', '222-333-4444');
 
 
 
-@app.route("/allorder", methods=["GET"])
-def getOrder():
-    conn, c = get_db()
-    c.execute("SELECT * FROM orders")
-    data = c.fetchall()
-    result = []
-    for item in data:
-        result.append({
-            'id': item[0],
-            'Name': item[1],
-            'Quantity': item[2],
-            'Price': item[3],
-            'Status': item[4]
-        })
-    conn.close()
-    return jsonify(result)
+# Problem: Write a query to fetch all data from the Customers table / collection.
 
-@app.route("/login", methods=["POST"])
-def getlogin():
-    logindata = request.get_json()
-    conn, c = get_db()
-    c.execute("SELECT * FROM login WHERE email=? AND password=?", (logindata['email'], logindata['password']))
-    login = c.fetchone()
+# SELECT * FROM Customers;
 
-    if login:
-        conn.close()
-        return jsonify("Login Successful", logindata)
+# Problem: Write a query to select only the name and email fields for all customers.
 
-    conn.close()
-    return jsonify("Wrong Credentials", "")
+# SELECT name, email FROM Customers;
 
-@app.route("/Signup", methods=["POST"])
-def getSignup():
-    signup = request.get_json()
-    print(signup)  # Add this line to print the signup data
-    conn, c = get_db()
-    c.execute("SELECT * FROM login WHERE email=?", (signup['email'],))
-    existing_user = c.fetchone()
 
-    if existing_user:
-        conn.close()
-        return jsonify("Email already exists")
+# Problem: Write a query to fetch the customer with the id of 3.
 
-    c.execute("INSERT INTO login (name, email, password) VALUES (?, ?, ?)", (signup['name'], signup['email'], signup['password']))
-    conn.commit()
-    conn.close()
-    return jsonify("Successfully Created Account")
+# SELECT * FROM Customers WHERE id = 3;
+
+# Problem: Write a query to fetch all customers whose name starts with 'A'.
+
+# SELECT * FROM Customers WHERE name LIKE 'A%';
+
+# Problem: Write a query to fetch all customers, ordered by name in descending order.
+# SELECT * FROM Customers ORDER BY name DESC;
+
+# Problem: Write a query to update the address of the customer with id 4.
+
+# UPDATE Customers SET address = 'New Address' WHERE id = 4;
+
+# Problem: Write a query to fetch the top 3 customers when ordered by id in ascending order.
+# SELECT * FROM Customers ORDER BY id ASC LIMIT 3;
+
+# Problem: Write a query to delete the customer with id 2.
+
+# DELETE FROM Customers WHERE id = 2;
+
+
+# Problem: Write a query to count the number of customers.
+
+# SELECT COUNT(*) AS total_customers FROM Customers;
+
+
+# Problem: Write a query to count the number of customers.
+
+# SELECT * FROM Customers ORDER BY id ASC OFFSET 2;
+
+# Problem: Write a query to fetch all customers except the first two when ordered by id in ascending order.
+
+# SELECT * FROM Customers ORDER BY id ASC OFFSET 2;
+
+# Problem: Write a query to fetch all customers whose id is greater than 2 and name starts with 'B'.
+
+# SELECT * FROM Customers WHERE id > 2 AND name LIKE 'B%';
+
+# Problem: Write a query to fetch all customers whose id is less than 3 or name ends with 's'.
+
+# SELECT * FROM Customers WHERE id < 3 OR name LIKE '%s';
+
+# Problem: Write a query to fetch all customers where the phone_number field is not set or is null.
+
+# SELECT * FROM Customers WHERE phone_number IS NULL OR phone_number = '';
 
 
 
 
-
-
-@app.route("/updateOrder/<string:name>", methods=["PATCH"])
-def updateOrder(name):
-    conn, c = get_db()
-    c.execute("SELECT * FROM orders WHERE Name=?", (name,))
-    order = c.fetchone()
-
-    if order:
-        if order[4] == "received":
-            c.execute("UPDATE orders SET Status=? WHERE Name=?", ("preparing", name))
-            conn.commit()
-            conn.close()
-            return jsonify("Order Status changed successfully: Preparing")
-        elif order[4] == "preparing":
-            c.execute("UPDATE orders SET Status=? WHERE Name=?", ("ready for pickup", name))
-            conn.commit()
-            conn.close()
-            return jsonify("Order Status changed successfully: Ready for Pickup")
-        elif order[4] == "ready for pickup":
-            c.execute("UPDATE orders SET Status=? WHERE Name=?", ("delivered", name))
-            conn.commit()
-            conn.close()
-            return jsonify("Order Status changed successfully: Delivered")
-        else:
-            conn.close()
-            return jsonify("Order already delivered")
-
-    conn.close()
-    return jsonify("Order with this name doesn't exist")
-
-# Rest of your code...
-
-if __name__ == '__main__':
-    app.run(port=8080)
